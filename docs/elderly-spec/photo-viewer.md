@@ -9,25 +9,24 @@ time from the same flat newest-first list as the grid.
 
 ## Layout (top to bottom)
 
-1. **Header** — static label "Photos", same as the grid. No back arrow
-   (system back returns to the grid), no month label, no menu.
-2. **The photo** — fills the space between header and buttons, letterboxed
-   to fit. For **videos** (decision #5): the frame shows the video with one
-   big centered ▶ play button; tapping it plays, tapping the video again
-   pauses. No scrub bar, no other playback chrome.
-3. **"↗ Share" | "🗑 Delete"** — half-width pills side by side, fixed at the
-   bottom. Share opens the
-   [Share with picker](share-delete.md#share-with-picker) for this one item;
-   Delete opens the
-   [delete confirmation](share-delete.md#delete-confirmation).
-4. **Hint line** — "Swipe to view more" in ≥18sp text under the buttons,
-   always visible (decision #11 — two of the three viewer wireframes omit
-   it, but a hint that disappears is a hidden state; it stays).
+1. **Header** — solid, opaque bar with the static label "Photos", same as
+   the grid (decision #11 revision) — not a gradient scrim over the photo.
+   No back arrow (system back returns to the grid), no month label, no menu.
+2. **The photo** — fills the space between header and buttons; reads as cut
+   off by the solid bars above and below it, for both photos and videos. For
+   **videos** (decision #5): the frame shows the video with one big centered
+   ▶ play button; tapping it plays, tapping the video again pauses.
+3. **"🗑 Delete" | "↗ Share"** — half-width pills side by side in a solid
+   opaque bottom bar (decision #16), Delete on the left (secondary/outlined),
+   Share on the right (primary/filled, box-with-up-arrow icon). Delete opens
+   the [delete confirmation](share-delete.md#delete-confirmation); Share
+   opens the [Share with picker](share-delete.md#share-with-picker) for this
+   one item.
 
 ## Behavior
 
-- **Horizontal swipe** moves to the next/previous item — the one gesture
-  the hint teaches. Swiping past either end does nothing (no wrap-around).
+- **Horizontal swipe** moves to the next/previous item. Swiping past either
+  end does nothing (no wrap-around).
 - **Pinch zoom and double-tap zoom** are kept (decision #11) — natural,
   already-known gestures. While zoomed in, panning moves around the photo;
   swiping to the next photo requires zooming back out (double-tap again).

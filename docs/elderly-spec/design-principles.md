@@ -18,17 +18,23 @@ wherever the two conflict.
 
 - Minimum touch target 56dp; action buttons are pill buttons ~64dp tall —
   full-width when alone ("Select Photos", "✗ Cancel"), half-width when
-  paired ("Share"/"Delete", "No"/"Yes").
-- Paired buttons sit side by side with a clear gap; the safe/leaving action
-  on the **left**, the confirming/destructive-confirm action on the
-  **right** — matching every wireframe ("No | Yes", "Share | Delete").
+  paired ("Delete"/"Share", "No"/"Yes").
+- Paired buttons sit side by side with a clear gap. For "No | Yes" the safe
+  action is on the **left** (outlined), the confirming action on the
+  **right** (filled), matching every wireframe. For "Delete | Share"
+  (decision #16, revised 2026-07-20) Delete is on the **left** (outlined)
+  and Share is on the **right** (filled) — the reverse of the No/Yes
+  left/right meaning, since neither is "leaving"; Share is the button most
+  likely to be reached for.
 - Grid thumbnails are large: **2 columns**, as drawn (decision #14).
-- Contact rows in the share picker are full-width, ≥ 64dp tall.
+- Conversation rows in the share picker are full-width, ≥ 64dp tall.
 
 ## Buttons say what they do
 
-- Every button has an icon **and** a text label: "↗ Share", "🗑 Delete",
-  "✗ Cancel", "☝ Select Photos". No icon-only actions anywhere.
+- Every button has an icon **and** a text label: "🗑 Delete", "↗ Share",
+  "✗ Cancel", "☝ Select Photos". Share's icon is a box with an arrow
+  pointing up out of it ("ios_share" style, decision #16), not the
+  three-node network glyph. No icon-only actions anywhere.
 - Dialog answers are plain words ("No" / "Yes"), not "OK".
 
 ## Navigation & gestures
@@ -41,9 +47,9 @@ wherever the two conflict.
 - **No overflow menu, no toolbar icons** — Settings/Sort/Search/About are
   unreachable from the UI (decision #4, #13).
 - The **only** gestures are: tap, vertical scroll in the grid, horizontal
-  swipe between photos in the viewer (labeled on screen: "Swipe to view
-  more"), and pinch/double-tap zoom in the viewer. **No long-press, no
-  drag-select, no swipe-to-dismiss, no pull-to-refresh** (decision #6).
+  swipe between photos in the viewer, and pinch/double-tap zoom in the
+  viewer. **No long-press, no drag-select, no swipe-to-dismiss, no
+  pull-to-refresh** (decision #6).
 - Selection is entered only through the labeled "Select Photos" button —
   never by long-pressing a thumbnail.
 
@@ -54,7 +60,8 @@ overlays, because that's exactly what the wireframes draw — a dialog is
 acceptable when it holds a single question or one short list:
 
 - **Delete confirmation** — one question, two big answer buttons.
-- **Share with** — a short list of contacts plus Cancel.
+- **Share with** — a short list of existing Messages conversations plus
+  Cancel.
 
 Both dim the screen behind them; tapping outside does nothing (explicit
 Cancel / No only, plus system back). No other dialogs exist.

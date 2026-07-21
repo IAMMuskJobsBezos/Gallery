@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_launcher_name">Gallery</string>
+
+    <!-- Elderly-friendly Photos redesign, see docs/elderly-spec/ -->
+    <string name="elderly_photos_title">Photos</string>
+    <string name="elderly_select_photos">Select Photos</string>
+    <string name="elderly_share_with">Share with</string>
+    <string name="elderly_no_photos_yet">No photos yet</string>
+    <string name="elderly_no_contacts_found">No conversations found</string>
+    <plurals name="elderly_delete_confirm_photos">
+        <item quantity="one">Are you sure you want to delete this photo?</item>
+        <item quantity="other">Are you sure you want to delete these %d photos?</item>
+    </plurals>
+    <plurals name="elderly_delete_confirm_videos">
+        <item quantity="one">Are you sure you want to delete this video?</item>
+        <item quantity="other">Are you sure you want to delete these %d videos?</item>
+    </plurals>
+    <plurals name="elderly_delete_confirm_items">
+        <item quantity="one">Are you sure you want to delete this item?</item>
+        <item quantity="other">Are you sure you want to delete these %d items?</item>
+    </plurals>
     <string name="edit">Edit</string>
     <string name="open_camera">Open camera</string>
     <string name="hidden">(hidden)</string>

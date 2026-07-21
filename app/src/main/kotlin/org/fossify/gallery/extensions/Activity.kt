@@ -1,9 +1,11 @@
 package org.fossify.gallery.extensions
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.ContentProviderOperation
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
@@ -45,6 +47,10 @@ import org.fossify.gallery.dialogs.PickDirectoryDialog
 import org.fossify.gallery.dialogs.ResizeMultipleImagesDialog
 import org.fossify.gallery.dialogs.ResizeWithPathDialog
 import org.fossify.gallery.helpers.DIRECTORY
+import org.fossify.gallery.helpers.MESSAGES_EXTRA_PREFILL_CONTACT_NAME
+import org.fossify.gallery.helpers.MESSAGES_EXTRA_PREFILL_PHONE_NUMBER
+import org.fossify.gallery.helpers.MESSAGES_PACKAGE
+import org.fossify.gallery.models.ElderlyConversation
 import org.fossify.gallery.helpers.RECYCLE_BIN
 import org.fossify.gallery.helpers.TEMP_FOLDER_NAME
 import org.fossify.gallery.models.DateTaken
@@ -67,6 +73,58 @@ fun Activity.shareMediumPath(path: String) {
 
 fun Activity.shareMediaPaths(paths: ArrayList<String>) {
     sharePaths(paths)
+}
+
+/**
+ * Elderly-friendly "Photos" share hand-off (docs/elderly-spec/share-delete.md, decision #7):
+ * sends [paths] to the Messages fork explicitly, pre-addressed to an existing [conversation].
+ */
+fun Activity.shareWithMessagesConversation(paths: List<String>, conversation: ElderlyConversation) {
+    val messagesPackage = resolveMessagesPackage()
+    if (messagesPackage == null) {
+        toast(org.fossify.commons.R.string.no_app_found)
+        return
+    }
+
+    val uris = paths.map { getFilePublicUri(File(it), BuildConfig.APPLICATION_ID) } as ArrayList<Uri>
+    val mimeType = if (paths.size == 1) paths.first().getMimeType() else "*/*"
+
+    val intent = Intent().apply {
+        action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
+        type = mimeType
+        setPackage(messagesPackage)
+        putExtra(MESSAGES_EXTRA_PREFILL_PHONE_NUMBER, conversation.phoneNumbers)
+        putExtra(MESSAGES_EXTRA_PREFILL_CONTACT_NAME, conversation.displayName)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (uris.size == 1) {
+            putExtra(Intent.EXTRA_STREAM, uris.first())
+        } else {
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+        }
+    }
+
+    try {
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        toast(org.fossify.commons.R.string.no_app_found)
+    } catch (e: Exception) {
+        showErrorToast(e)
+    }
+}
+
+/**
+ * The Messages fork's applicationId gets a ".debug" suffix on debug builds (matching this app's
+ * own convention) - resolve whichever variant is actually installed instead of assuming release.
+ */
+private fun Activity.resolveMessagesPackage(): String? {
+    return listOf(MESSAGES_PACKAGE, "$MESSAGES_PACKAGE.debug").firstOrNull { pkg ->
+        try {
+            packageManager.getPackageInfo(pkg, 0)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
 }
 
 fun Activity.setAs(path: String) {

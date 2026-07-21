@@ -45,7 +45,10 @@ import org.fossify.commons.extensions.viewBinding
 import org.fossify.commons.helpers.FAVORITES
 import org.fossify.commons.helpers.IS_FROM_GALLERY
 import org.fossify.commons.helpers.REQUEST_EDIT_IMAGE
+import org.fossify.commons.helpers.SORT_BY_DATE_TAKEN
 import org.fossify.commons.helpers.SORT_BY_RANDOM
+import org.fossify.commons.helpers.SORT_DESCENDING
+import org.fossify.commons.helpers.SORT_USE_NUMERIC_VALUE
 import org.fossify.commons.helpers.VIEW_TYPE_GRID
 import org.fossify.commons.helpers.VIEW_TYPE_LIST
 import org.fossify.commons.helpers.ensureBackgroundThread
@@ -56,6 +59,7 @@ import org.fossify.commons.views.MyGridLayoutManager
 import org.fossify.commons.views.MyRecyclerView
 import org.fossify.gallery.R
 import org.fossify.gallery.adapters.MediaAdapter
+import org.fossify.gallery.adapters.PhotosGridAdapter
 import org.fossify.gallery.asynctasks.GetMediaAsynctask
 import org.fossify.gallery.databases.GalleryDatabase
 import org.fossify.gallery.databinding.ActivityMediaBinding
@@ -64,6 +68,8 @@ import org.fossify.gallery.dialogs.ChangeSortingDialog
 import org.fossify.gallery.dialogs.ChangeViewTypeDialog
 import org.fossify.gallery.dialogs.FilterMediaDialog
 import org.fossify.gallery.dialogs.GrantAllFilesDialog
+import org.fossify.gallery.dialogs.ShareWithDialog
+import org.fossify.gallery.dialogs.SimpleDeleteConfirmDialog
 import org.fossify.gallery.extensions.config
 import org.fossify.gallery.extensions.deleteDBPath
 import org.fossify.gallery.extensions.directoryDB
@@ -83,6 +89,7 @@ import org.fossify.gallery.extensions.openPath
 import org.fossify.gallery.extensions.openRecycleBin
 import org.fossify.gallery.extensions.restoreRecycleBinPaths
 import org.fossify.gallery.extensions.showRecycleBinEmptyingDialog
+import org.fossify.gallery.extensions.shareWithMessagesConversation
 import org.fossify.gallery.extensions.showRestoreConfirmationDialog
 import org.fossify.gallery.extensions.tryDeleteFileDirItem
 import org.fossify.gallery.extensions.updateWidgets
@@ -90,6 +97,7 @@ import org.fossify.gallery.helpers.DIRECTORY
 import org.fossify.gallery.helpers.GET_ANY_INTENT
 import org.fossify.gallery.helpers.GET_IMAGE_INTENT
 import org.fossify.gallery.helpers.GET_VIDEO_INTENT
+import org.fossify.gallery.helpers.GROUP_BY_NONE
 import org.fossify.gallery.helpers.GridSpacingItemDecoration
 import org.fossify.gallery.helpers.IS_IN_RECYCLE_BIN
 import org.fossify.gallery.helpers.MAX_COLUMN_COUNT
@@ -112,6 +120,10 @@ import org.fossify.gallery.models.ThumbnailItem
 import org.fossify.gallery.models.ThumbnailSection
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class MediaActivity : SimpleActivity(), MediaOperationsListener {
     override var isSearchBarEnabled = true
@@ -135,6 +147,13 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
     private var mTempShowHiddenHandler = Handler()
     private var mCurrAsyncTask: GetMediaAsynctask? = null
     private var mZoomListener: MyRecyclerView.MyZoomListener? = null
+    private var mElderlyAdapter: PhotosGridAdapter? = null
+
+    // this app is a flat "Photos" grid only (elderly-friendly redesign, see docs/elderly-spec/) -
+    // the picker-intent/set-wallpaper flows below are the only other apps' OS-level contract with
+    // this activity (e.g. attaching a photo from Messages) and are left on the original UI
+    private val isElderlyMode: Boolean
+        get() = !mIsGetImageIntent && !mIsGetVideoIntent && !mIsGetAnyIntent && !isSetWallpaperIntent()
 
     private var mStoredAnimateGifs = true
     private var mStoredCropThumbnails = true
@@ -176,8 +195,8 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         refreshMenuItems()
         storeStateVariables()
         setupEdgeToEdge(
-            padTopSystem = listOf(binding.mediaMenu),
-            padBottomImeAndSystem = listOf(binding.mediaGrid)
+            padTopSystem = listOf(binding.mediaMenu, binding.photosHeader),
+            padBottomImeAndSystem = listOf(binding.mediaGrid, binding.photosElderlyGrid, binding.photosBottomBar)
         )
 
         if (mShowAll) {
@@ -189,6 +208,10 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         }
 
         updateWidgets()
+
+        if (isElderlyMode) {
+            setupElderlyMode()
+        }
     }
 
     override fun onStart() {
@@ -495,6 +518,14 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
     private fun getMediaAdapter() = binding.mediaGrid.adapter as? MediaAdapter
 
     private fun setupAdapter() {
+        if (isElderlyMode) {
+            // the original folder-view grid (media_holder/media_grid/MediaAdapter) is hidden
+            // entirely in setupElderlyMode() - don't also build it, it would sit underneath the
+            // elderly grid and bleed through in the gaps
+            updateElderlyAdapterData()
+            return
+        }
+
         if (!mShowAll && isDirEmpty()) {
             return
         }
@@ -1139,4 +1170,128 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
         config.defaultFolder = ""
         refreshMenuItems()
     }
+
+    // region Elderly-friendly "Photos" grid (docs/elderly-spec/photos-grid.md)
+
+    private fun setupElderlyMode() {
+        config.saveCustomSorting(SHOW_ALL, SORT_BY_DATE_TAKEN or SORT_DESCENDING or SORT_USE_NUMERIC_VALUE)
+        config.saveFolderGrouping(SHOW_ALL, GROUP_BY_NONE)
+        config.useRecycleBin = true
+
+        binding.mediaMenu.beGone()
+        binding.mediaHolder.beGone()
+        binding.loadingIndicator.beGone()
+        binding.photosElderlyRoot.beVisible()
+
+        val textColor = getProperTextColor()
+        binding.photosHeaderTitle.setTextColor(textColor)
+        binding.photosHeaderMonth.setTextColor(androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 150))
+        binding.photosEmptyPlaceholder.setTextColor(textColor)
+
+        mElderlyAdapter = PhotosGridAdapter(
+            activity = this,
+            media = ArrayList(),
+            onItemClick = { medium -> itemClicked(medium.path) },
+            onSelectionChanged = { updateElderlySelectionUi() }
+        )
+        binding.photosElderlyGrid.adapter = mElderlyAdapter
+        binding.photosElderlyGrid.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                updateMonthLabel()
+            }
+        })
+
+        binding.photosSelectButton.setOnClickListener {
+            mElderlyAdapter?.isSelectionModeActive = true
+            binding.photosSelectButton.beGone()
+            binding.photosSelectionBar.beVisible()
+            updateElderlySelectionUi()
+        }
+
+        binding.photosCancelButton.setOnClickListener {
+            exitElderlySelectionMode()
+        }
+
+        binding.photosShareButton.setOnClickListener {
+            shareElderlySelection()
+        }
+
+        binding.photosDeleteButton.setOnClickListener {
+            confirmDeleteElderlySelection()
+        }
+    }
+
+    private fun exitElderlySelectionMode() {
+        mElderlyAdapter?.isSelectionModeActive = false
+        binding.photosSelectionBar.beGone()
+        binding.photosSelectButton.beVisibleIf(mMedia.isNotEmpty())
+    }
+
+    private fun updateElderlySelectionUi() {
+        val hasSelection = (mElderlyAdapter?.getSelectedCount() ?: 0) > 0
+        binding.photosShareButton.isEnabled = hasSelection
+        binding.photosShareButton.alpha = if (hasSelection) 1f else 0.5f
+        binding.photosDeleteButton.isEnabled = hasSelection
+        binding.photosDeleteButton.alpha = if (hasSelection) 1f else 0.5f
+    }
+
+    private fun updateElderlyAdapterData() {
+        val photosAndVideos = mMedia.filterIsInstance<Medium>() as ArrayList<Medium>
+        mElderlyAdapter?.updateMedia(photosAndVideos)
+
+        val isEmpty = photosAndVideos.isEmpty()
+        binding.photosEmptyPlaceholder.beVisibleIf(isEmpty)
+        binding.photosElderlyGrid.beVisibleIf(!isEmpty)
+        if (isEmpty) {
+            binding.photosSelectButton.beGone()
+            binding.photosSelectionBar.beGone()
+        } else if (mElderlyAdapter?.isSelectionModeActive != true) {
+            binding.photosSelectButton.beVisible()
+        }
+
+        updateMonthLabel()
+    }
+
+    private fun updateMonthLabel() {
+        val layoutManager = binding.photosElderlyGrid.layoutManager as? GridLayoutManager ?: return
+        val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+        val medium = mElderlyAdapter?.getMediumAt(firstVisiblePosition) ?: return
+        binding.photosHeaderMonth.text = formatElderlyMonthLabel(medium.taken)
+    }
+
+    private fun formatElderlyMonthLabel(dateTakenMillis: Long): String {
+        val mediumCalendar = Calendar.getInstance().apply { timeInMillis = dateTakenMillis }
+        val nowCalendar = Calendar.getInstance()
+        val pattern = if (mediumCalendar.get(Calendar.YEAR) == nowCalendar.get(Calendar.YEAR)) "MMMM" else "MMMM yyyy"
+        return SimpleDateFormat(pattern, Locale.getDefault()).format(Date(dateTakenMillis))
+    }
+
+    private fun shareElderlySelection() {
+        val selected = mElderlyAdapter?.getSelectedMedia() ?: return
+        if (selected.isEmpty()) {
+            return
+        }
+
+        ShareWithDialog(this) { conversation ->
+            shareWithMessagesConversation(selected.map { it.path }, conversation)
+            exitElderlySelectionMode()
+        }
+    }
+
+    private fun confirmDeleteElderlySelection() {
+        val selected = mElderlyAdapter?.getSelectedMedia() ?: return
+        if (selected.isEmpty()) {
+            return
+        }
+
+        val photoCount = selected.count { !it.isVideo() }
+        val videoCount = selected.count { it.isVideo() }
+        SimpleDeleteConfirmDialog(this, photoCount, videoCount) {
+            val fileDirItems = selected.map { it.toFileDirItem() } as ArrayList<FileDirItem>
+            tryDeleteFiles(fileDirItems, skipRecycleBin = false)
+            exitElderlySelectionMode()
+        }
+    }
+
+    // endregion
 }

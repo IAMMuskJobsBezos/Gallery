@@ -7,6 +7,7 @@ import org.fossify.gallery.extensions.config
 import org.fossify.gallery.extensions.favoritesDB
 import org.fossify.gallery.extensions.getFavoriteFromPath
 import org.fossify.gallery.extensions.mediaDB
+import org.fossify.gallery.helpers.DIRECTORY
 import org.fossify.gallery.models.Favorite
 
 class SplashActivity : BaseSplashActivity() {
@@ -37,7 +38,13 @@ class SplashActivity : BaseSplashActivity() {
     }
 
     private fun launchActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
+        // this app is a flat "Photos" grid only (elderly-friendly redesign) — folder
+        // browsing (MainActivity) is unreachable, launch straight into the SHOW_ALL grid
+        config.showAll = true
+        Intent(this, MediaActivity::class.java).apply {
+            putExtra(DIRECTORY, "")
+            startActivity(this)
+        }
         finish()
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_holder"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -13,6 +14,41 @@
     <include
         android:id="@+id/bottom_actions"
         layout="@layout/bottom_actions" />
+
+    <!-- Elderly-friendly viewer bottom bar (docs/elderly-spec/photo-viewer.md). Shown instead of
+         bottom_actions above for items opened from the "Photos" grid; the camera-review /
+         external ACTION_VIEW entry points are left on the original bottom_actions UI. -->
+    <LinearLayout
+        android:id="@+id/photos_viewer_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/elderly_bottom_bar_padding"
+        android:paddingVertical="@dimen/elderly_bottom_bar_padding"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/photos_viewer_delete_button"
+            style="@style/ElderlyButton.Secondary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/small_margin"
+            android:text="@string/delete"
+            app:icon="@drawable/ic_delete_vector" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/photos_viewer_share_button"
+            style="@style/ElderlyButton.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/small_margin"
+            android:text="@string/share"
+            app:icon="@drawable/ic_share_ios_vector" />
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/top_shadow"

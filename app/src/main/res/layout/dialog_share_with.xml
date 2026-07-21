@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_margin">
+
+    <org.fossify.commons.views.MyTextView
+        android:id="@+id/share_with_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_margin"
+        android:text="@string/elderly_share_with"
+        android:textSize="@dimen/elderly_header_text_size"
+        android:textStyle="bold" />
+
+    <org.fossify.commons.views.MyTextView
+        android:id="@+id/share_with_empty_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/activity_margin"
+        android:gravity="center_horizontal"
+        android:text="@string/elderly_no_contacts_found"
+        android:textSize="@dimen/elderly_body_text_size"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/share_with_contacts_list"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_share_contact" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/share_with_cancel_button"
+        style="@style/ElderlyButton.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_margin"
+        android:text="@string/cancel"
+        app:icon="@drawable/ic_cross_vector" />
+</LinearLayout>

@@ -29,4 +29,33 @@
     <dimen name="sample_thumbnail_size">180dp</dimen>
     <dimen name="directory_picker_dialog_min_height">180dp</dimen>
     <dimen name="smaller_icon_size">36dp</dimen>
+
+    <!-- Elderly-scale tokens, see docs/elderly-spec/design-principles.md -->
+    <!-- Header label ("Photos") and the grid's month label - matches the viewer toolbar's title
+         exactly (both driven by this dimen and elderly_header_height, see styles.xml
+         TextAppearance.ElderlyHeader and ViewPagerActivity.setupElderlyMode()) -->
+    <dimen name="elderly_header_text_size">24sp</dimen>
+    <dimen name="elderly_header_vertical_padding">12dp</dimen>
+    <!-- Viewer header height (grid uses wrap_content+padding instead, tuned to look the same) -->
+    <dimen name="elderly_header_height">52dp</dimen>
+    <!-- Bottom bar padding around Share/Delete pills - tight, not the full activity_margin -->
+    <dimen name="elderly_bottom_bar_padding">8dp</dimen>
+    <!-- Body text floor -->
+    <dimen name="elderly_body_text_size">18sp</dimen>
+    <!-- Dialog question text (delete confirm) -->
+    <dimen name="elderly_dialog_text_size">22sp</dimen>
+    <!-- Button label text -->
+    <dimen name="elderly_button_text_size">20sp</dimen>
+    <!-- Full-width/paired pill buttons -->
+    <dimen name="elderly_button_height">64dp</dimen>
+    <!-- Minimum touch target for any tappable control -->
+    <dimen name="elderly_touch_target_min">56dp</dimen>
+    <!-- Selection circle on grid tiles - purple outline when unselected, filled when selected -->
+    <dimen name="elderly_selection_circle_size">32dp</dimen>
+    <!-- Centered play badge on video tiles/viewer -->
+    <dimen name="elderly_play_badge_size">56dp</dimen>
+    <!-- Share-with contact row minimum height -->
+    <dimen name="elderly_contact_row_min_height">64dp</dimen>
+    <!-- Contact avatar size in the share-with picker -->
+    <dimen name="elderly_contact_avatar_size">48dp</dimen>
 </resources>

@@ -263,6 +263,14 @@ const val FOLDER_STYLE_ROUNDED_CORNERS = 2
 // animations
 const val THUMBNAIL_FADE_DURATION_MS = 150
 
+// Elderly-friendly "Photos" redesign share hand-off (docs/elderly-spec/share-delete.md,
+// decision #7). Targets the Messages fork explicitly and pre-fills the picked contact's number so
+// its own contact picker is skipped - NewConversationActivity.kt in the Messages repo must read
+// these same two extra keys off an incoming SEND/SEND_MULTIPLE intent.
+const val MESSAGES_PACKAGE = "org.fossify.messages"
+const val MESSAGES_EXTRA_PREFILL_PHONE_NUMBER = "org.fossify.messages.extra.PREFILL_PHONE_NUMBER"
+const val MESSAGES_EXTRA_PREFILL_CONTACT_NAME = "org.fossify.messages.extra.PREFILL_CONTACT_NAME"
+
 fun getPermissionToRequest() = if (isTiramisuPlus()) PERMISSION_READ_MEDIA_IMAGES else PERMISSION_WRITE_STORAGE
 
 fun getPermissionsToRequest(): Collection<Int> {

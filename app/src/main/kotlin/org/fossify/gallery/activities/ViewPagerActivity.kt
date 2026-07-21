@@ -57,6 +57,7 @@ import org.fossify.commons.extensions.getImageResolution
 import org.fossify.commons.extensions.getIsPathDirectory
 import org.fossify.commons.extensions.getParentPath
 import org.fossify.commons.extensions.getProperBackgroundColor
+import org.fossify.commons.extensions.getProperTextColor
 import org.fossify.commons.extensions.getResolution
 import org.fossify.commons.extensions.getUriMimeType
 import org.fossify.commons.extensions.handleDeletePasswordProtection
@@ -99,6 +100,8 @@ import org.fossify.gallery.asynctasks.GetMediaAsynctask
 import org.fossify.gallery.databinding.ActivityMediumBinding
 import org.fossify.gallery.dialogs.DeleteWithRememberDialog
 import org.fossify.gallery.dialogs.SaveAsDialog
+import org.fossify.gallery.dialogs.ShareWithDialog
+import org.fossify.gallery.dialogs.SimpleDeleteConfirmDialog
 import org.fossify.gallery.dialogs.SlideshowDialog
 import org.fossify.gallery.extensions.config
 import org.fossify.gallery.extensions.favoritesDB
@@ -118,6 +121,7 @@ import org.fossify.gallery.extensions.restoreRecycleBinPath
 import org.fossify.gallery.extensions.saveRotatedImageToFile
 import org.fossify.gallery.extensions.setAs
 import org.fossify.gallery.extensions.shareMediumPath
+import org.fossify.gallery.extensions.shareWithMessagesConversation
 import org.fossify.gallery.extensions.showFileOnMap
 import org.fossify.gallery.extensions.showSystemUI
 import org.fossify.gallery.extensions.toggleFileVisibility
@@ -207,6 +211,14 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
 
     private var mIsOrientationLocked = false
 
+    // this app is a flat "Photos" grid/viewer only (elderly-friendly redesign, see
+    // docs/elderly-spec/) - IS_FROM_GALLERY is only ever set true by MediaActivity's own
+    // (non-third-party-intent) itemClicked() -> openInViewPager(), so it doubles as the signal
+    // that this viewer instance was opened from our own grid rather than an external
+    // camera-review/ACTION_VIEW/shortcut entry point, which are left on the original chrome
+    private val isElderlyMode: Boolean
+        get() = intent.getBooleanExtra(IS_FROM_GALLERY, false)
+
     private var mMediaFiles = ArrayList<Medium>()
     private var mFavoritePaths = ArrayList<String>()
     private var mIgnoredPaths = ArrayList<String>()
@@ -224,11 +236,15 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setupEdgeToEdge(
-            padBottomSystem = listOf(binding.bottomActions.bottomActionsWrapper),
+            padBottomSystem = listOf(binding.bottomActions.bottomActionsWrapper, binding.photosViewerBottomBar),
         )
 
         setupOptionsMenu()
         refreshMenuItems()
+
+        if (isElderlyMode) {
+            setupElderlyMode()
+        }
 
         window.decorView.setBackgroundColor(getProperBackgroundColor())
         (MediaActivity.mMedia.clone() as ArrayList<ThumbnailItem>).filterIsInstanceTo(mMediaFiles, Medium::class.java)
@@ -254,8 +270,10 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
         setupOrientation()
         refreshMenuItems()
 
-        val filename = getCurrentMedium()?.name ?: mPath.getFilenameFromPath()
-        binding.mediumViewerToolbar.title = filename
+        if (!isElderlyMode) {
+            val filename = getCurrentMedium()?.name ?: mPath.getFilenameFromPath()
+            binding.mediumViewerToolbar.title = filename
+        }
     }
 
     override fun onPause() {
@@ -281,6 +299,10 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
     }
 
     fun refreshMenuItems() {
+        if (isElderlyMode) {
+            return
+        }
+
         val currentMedium = getCurrentMedium() ?: return
         currentMedium.isFavorite = mFavoritePaths.contains(currentMedium.path)
         val visibleBottomActions = if (config.bottomActions) config.visibleBottomActions else 0
@@ -489,7 +511,9 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
             isShowingRecycleBin -> RECYCLE_BIN
             else -> mPath.getParentPath()
         }
-        binding.mediumViewerToolbar.title = mPath.getFilenameFromPath()
+        if (!isElderlyMode) {
+            binding.mediumViewerToolbar.title = mPath.getFilenameFromPath()
+        }
 
         binding.viewPager.onGlobalLayout {
             if (!isDestroyed) {
@@ -557,6 +581,11 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
     }
 
     private fun initBottomActions() {
+        if (isElderlyMode) {
+            binding.bottomActions.root.beGone()
+            return
+        }
+
         initBottomActionButtons()
         initBottomActionsLayout()
     }
@@ -1418,6 +1447,12 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
     }
 
     override fun fragmentClicked() {
+        // header/buttons/hint stay visible at all times in elderly mode (design-principles.md) -
+        // tapping the photo does nothing, matching decision #11 in docs/elderly-spec/decisions.md
+        if (isElderlyMode) {
+            return
+        }
+
         mIsFullScreen = !mIsFullScreen
         checkSystemUI()
         fullscreenToggled()
@@ -1500,6 +1535,10 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
     }
 
     private fun updateActionbarTitle() {
+        if (isElderlyMode) {
+            return
+        }
+
         runOnUiThread {
             val medium = getCurrentMedium()
             if (medium != null) {
@@ -1540,4 +1579,59 @@ class ViewPagerActivity : BaseViewerActivity(), ViewPager.OnPageChangeListener, 
     private fun isExternalIntent(): Boolean {
         return !intent.getBooleanExtra(IS_FROM_GALLERY, false)
     }
+
+    // region Elderly-friendly "Photos" viewer (docs/elderly-spec/photo-viewer.md)
+
+    private fun setupElderlyMode() {
+        val backgroundColor = getProperBackgroundColor()
+        val textColor = getProperTextColor()
+
+        binding.mediumViewerToolbar.apply {
+            menu.clear()
+            navigationIcon = null
+            title = getString(R.string.elderly_photos_title)
+            setTitleTextAppearance(this@ViewPagerActivity, R.style.TextAppearance_ElderlyHeader)
+            setTitleTextColor(textColor)
+            layoutParams = layoutParams.apply {
+                height = resources.getDimensionPixelSize(R.dimen.elderly_header_height)
+            }
+            setOnMenuItemClickListener(null)
+            setNavigationOnClickListener(null)
+        }
+
+        // solid header/footer bars (not a gradient overlaid on the photo) so the image reads as
+        // cut off between them, for both photos and videos - docs/elderly-spec/photo-viewer.md
+        binding.topShadow.beGone()
+        binding.mediumViewerAppbar.setBackgroundColor(backgroundColor)
+
+        binding.bottomActions.root.beGone()
+        binding.photosViewerBottomBar.setBackgroundColor(backgroundColor)
+        binding.photosViewerBottomBar.beVisible()
+
+        binding.photosViewerShareButton.setOnClickListener {
+            shareElderlyCurrentItem()
+        }
+
+        binding.photosViewerDeleteButton.setOnClickListener {
+            confirmDeleteElderlyCurrentItem()
+        }
+    }
+
+    private fun shareElderlyCurrentItem() {
+        val medium = getCurrentMedium() ?: return
+        ShareWithDialog(this) { conversation ->
+            shareWithMessagesConversation(listOf(medium.path), conversation)
+        }
+    }
+
+    private fun confirmDeleteElderlyCurrentItem() {
+        val medium = getCurrentMedium() ?: return
+        val photoCount = if (medium.isVideo()) 0 else 1
+        val videoCount = if (medium.isVideo()) 1 else 0
+        SimpleDeleteConfirmDialog(this, photoCount, videoCount) {
+            deleteConfirmed(skipRecycleBin = false)
+        }
+    }
+
+    // endregion
 }

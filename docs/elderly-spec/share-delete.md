@@ -12,27 +12,31 @@ buttons only, tap-outside does nothing, system back cancels.
 Wireframes: [`grid-share-with`](wireframes/grid-share-with.png),
 [`viewer-share-with`](wireframes/viewer-share-with.png).
 
-Not the Android share sheet — a simplified contact picker (decision #7).
-The two wireframes title it differently ("Share with" / "Select to share
-with:"); unified as **"Share with"** in both places.
+Not the Android share sheet, and not a contact picker either (superseded
+2026-07-20, decision #7) — it lists the person's **existing Messages
+conversations**, read straight from the system SMS/MMS provider (the same
+source Messages itself reads). The two wireframes title it differently
+("Share with" / "Select to share with:"); unified as **"Share with"** in
+both places.
 
 1. **Title** — "Share with".
-2. **Contact list** — every device contact that has a phone number
-   (decision #8), sorted by name, scrolling when long. One row per contact:
-   round avatar (photo, or Commons letter-avatar) + name, ≥64dp tall, thin
+2. **Conversation list** — every conversation with at least one message,
+   newest first, scrolling when long. Group threads show all recipient
+   names joined ("Harvard, Stanford"). One row per conversation: round
+   avatar (Commons generic-person icon) + name, ≥64dp tall, thin
    low-contrast divider between rows. Tapping a row is the send action —
-   there is no separate confirm step.
+   there is no separate confirm step. Empty state: "No conversations found."
 3. **"✗ Cancel"** — full-width pill at the bottom. Closes the picker,
    changing nothing.
 
 On tap, the selected photo(s)/video(s) are handed to the **Messages fork**
-addressed to that contact (MMS) — decision #7. The picker closes, a toast
-confirms ("Sent to Harvard" / "Sending…" per what the hand-off can actually
-know), select mode ends (grid) or the viewer stays on the same item.
+addressed to that conversation (MMS) — decision #7. The picker closes, a
+toast confirms ("Sent to Harvard"), select mode ends (grid) or the viewer
+stays on the same item.
 
-Requires the `READ_CONTACTS` permission — the one new permission in this
-redesign (decision #7). If it's denied, tapping Share explains why it's
-needed in a plain-language dialog with a button to grant it.
+Requires the `READ_SMS` permission (`READ_CONTACTS` is used only to resolve
+a number to a display name, best-effort) — decision #7. If `READ_SMS` is
+denied, the picker closes.
 
 ## Delete confirmation
 

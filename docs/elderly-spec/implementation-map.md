@@ -38,7 +38,7 @@ calling a screen done. Progress screenshots go in `_progress/` (untracked).
 
 | Spec | Existing code | Change |
 | --- | --- | --- |
-| "Share with" contact picker → Messages | `extensions/Activity.kt: sharePath/sharePaths` (system share sheet), `AndroidManifest.xml` | New dialog listing device contacts with phone numbers (needs new `READ_CONTACTS` permission — the redesign's one permission addition, decision #7); on tap, fire `ACTION_SEND`/`ACTION_SEND_MULTIPLE` targeted explicitly at the Messages fork's package with the media URIs and the contact's number (the fork's compose activity already accepts SEND/SEND_MULTIPLE with `*/*` — exact recipient extras to be confirmed against it when building, see decisions.md "Still open") |
+| "Share with" conversation picker → Messages | `extensions/Activity.kt: sharePath/sharePaths` (system share sheet), `AndroidManifest.xml` | `dialogs/ShareWithDialog.kt` + `extensions/Telephony.kt: getElderlyConversations()` read `Telephony.Threads`/canonical-addresses directly (needs `READ_SMS`; `READ_CONTACTS` best-effort for display names) instead of device contacts; on tap, `extensions/Activity.kt: shareWithMessagesConversation()` fires `ACTION_SEND`/`ACTION_SEND_MULTIPLE` targeted explicitly at the Messages fork's package (resolved at runtime — debug builds carry a `.debug` applicationId suffix) with the media URIs and the conversation's number(s); `NewConversationActivity.kt` in the Messages repo reads those extras and skips its own recipient picker |
 
 ## Delete
 
@@ -57,5 +57,6 @@ nothing links to them; each gets its own pass later if ever.
 ## Android permissions
 
 Existing storage/media permission flow stays as-is
-(`AllFilesPermissionDialog`, `GrantAllFilesDialog`, …). The **only**
-addition is `READ_CONTACTS` for the share picker (decision #7).
+(`AllFilesPermissionDialog`, `GrantAllFilesDialog`, …). New additions for the
+share picker (decision #7): `READ_SMS` (gates opening the picker) and
+`READ_CONTACTS` (best-effort display-name resolution only).

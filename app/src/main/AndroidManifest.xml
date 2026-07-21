@@ -16,6 +16,12 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Elderly-friendly "Photos" redesign: the "Share with" picker lists existing Messages
+         conversations from the system SMS/MMS provider (docs/elderly-spec/share-delete.md,
+         decision #7); READ_CONTACTS is used only to resolve a number to a display name -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
@@ -35,6 +41,12 @@
     <queries>
         <package android:name="org.fossify.gallery.debug" />
         <package android:name="org.fossify.gallery" />
+
+        <!-- Elderly-friendly "Photos" redesign: package visibility (Android 11+) for the
+             "Share with" hand-off to the Messages fork - extensions/Activity.kt:
+             resolveMessagesPackage() (docs/elderly-spec/share-delete.md, decision #7) -->
+        <package android:name="org.fossify.messages" />
+        <package android:name="org.fossify.messages.debug" />
     </queries>
 
     <uses-feature

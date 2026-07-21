@@ -36,9 +36,10 @@ are disabled (decision #6).
   to a filled circle with a checkmark (and back). Tapping a tile in select
   mode never opens the viewer.
 - The bottom of the screen shows, in place of Select Photos:
-  - **"↗ Share" | "🗑 Delete"** — half-width pills side by side. Both act on
-    the checked items; both do nothing (stay disabled/dimmed) while nothing
-    is checked.
+  - **"🗑 Delete" | "↗ Share"** — half-width pills side by side, Delete on
+    the left (secondary/outlined), Share on the right (primary/filled,
+    box-with-up-arrow icon) — decision #16. Both act on the checked items;
+    both do nothing (stay disabled/dimmed) while nothing is checked.
   - **"✗ Cancel"** — full-width pill below the pair. Clears the selection
     and leaves select mode. System back does the same.
 - Share opens the [Share with picker](share-delete.md#share-with-picker);
