@@ -47,18 +47,18 @@ Wireframes: [`grid-delete-confirm`](wireframes/grid-delete-confirm.png),
    - "Are you sure you want to delete this photo?" / "…this video?"
    - "Are you sure you want to delete these 3 photos?" (mixed types:
      "…these 3 items?")
-   - The wireframes' second sentence "This action cannot be undone." is
-     **dropped** (decision #9): deleted files actually go to the hidden
-     recycle bin, so the sentence would be false — and "photo(s)" shorthand
-     violates the [language rules](design-principles.md#language).
+   - **Revised 2026-07-20 (decision #9):** delete is now permanent, so the
+     wireframes' second sentence "This action cannot be undone." is
+     accurate and should be reinstated here if the dialog copy is
+     revisited — the "photo(s)" shorthand still violates the
+     [language rules](design-principles.md#language) though.
 2. **"No" | "Yes"** — half-width pills, No on the left. No is the default
    focus; system back and tap-outside also mean No.
 
-On Yes: the items move to Fossify's **recycle bin** (auto-purged after the
-existing 30-day window) — decision #9. There is **no bin UI anywhere** in
-the app; to the user the photo is simply gone, but a caregiver can recover
-it within 30 days (via the file system or a stock Fossify build — see
-"Still open" in [decisions.md](decisions.md)). Afterwards: select mode ends
-and the grid refreshes (grid path), or the viewer advances to the next item
-— previous if it was the last, closing to the grid when nothing remains
-(viewer path).
+On Yes: the items are **permanently deleted** immediately (decision #9,
+revised 2026-07-20) — `useRecycleBin` defaults to off and elderly mode
+forces it off, so there is no recycle bin, no 30-day window, and no
+caregiver recovery path. Afterwards: select mode ends and the grid
+refreshes (grid path), or the viewer advances to the next item — previous
+if it was the last, closing to the grid when nothing remains (viewer
+path).

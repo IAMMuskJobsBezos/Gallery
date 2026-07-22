@@ -15,7 +15,7 @@ this spec.
 | 6 | Selection | **Only via the "Select Photos" button.** Long-press, drag-select, and every other hidden gesture are disabled. Tap toggles a visible circle/check on each tile. |
 | 7 | Share mechanism | **Superseded 2026-07-20.** "Share with" lists the person's **existing Messages conversations** (read straight from the system SMS/MMS provider, same source Messages itself reads — not device contacts, decision #8 below is superseded too). Tapping one hands the media off explicitly to the Messages fork (`ACTION_SEND`/`ACTION_SEND_MULTIPLE`, pre-addressed via extras so Messages skips its own recipient picker). Adds `READ_SMS` (`READ_CONTACTS` is now only used to resolve a number to a display name, best-effort). |
 | 8 | Picker contents | **Superseded — see #7.** Every existing conversation (including group threads), newest first, not contacts. |
-| 9 | Delete behavior | **Recycle bin, hidden.** Yes moves files to Fossify's recycle bin (30-day auto-purge) as a caregiver safety net; no bin UI exists anywhere. The wireframes' "This action cannot be undone." sentence is dropped from the dialog — it would be false, and the "photo(s)" shorthand violates the language rules. |
+| 9 | Delete behavior | **Revised 2026-07-20: permanent, no recycle bin.** `useRecycleBin` now defaults to `false` and `setupElderlyMode()` forces it off, so Yes deletes the file immediately and irreversibly — the caregiver-safety-net recycle bin from the original decision is removed. The confirmation dialog picks up Commons' standard `deletion_confirmation` string automatically (the "move to recycle bin" wording only shows when `useRecycleBin` is on), so the wireframes' "This action cannot be undone." sentence is now true and should be reinstated if/when the dialog copy is revisited. |
 | 10 | Month label | Right end of the grid header shows the **month of the topmost visible row**, updating on scroll — "May", with the year added when not the current year ("May 2024"). Grid only; the viewer header is just "Photos". |
 | 11 | Viewer chrome | **Always visible** — no immersive mode, no tap-to-hide. Pinch and double-tap zoom kept. No wrap-around at either end of the list. **Revised 2026-07-20:** the "Swipe to view more" hint is removed (redundant once you've swiped once); the header and the Share/Delete bar are solid opaque bars (not a gradient scrim over the photo), so the photo reads as cut off between them — for both photos and videos. |
 | 12 | Grid order | **Newest first by date taken.** No grouping headers, no fastscroller. |
@@ -36,9 +36,9 @@ this spec.
 
 ## Still open (later)
 
-- **Caregiver recovery path** for the hidden recycle bin (#9) — document how
-  a helper actually restores a deleted photo (stock Fossify build? file
-  manager?) once the delete flow lands.
+- ~~Caregiver recovery path for the hidden recycle bin (#9)~~ — moot as of
+  the 2026-07-20 revision to #9; delete is now permanent and there is no bin
+  to recover from.
 - Dark theme and 200% system font size must be verified per screen during
   the build loop (#15) — the Clock effort showed these slip when deferred.
 - Settings & widgets redesign (post-v1, #13).

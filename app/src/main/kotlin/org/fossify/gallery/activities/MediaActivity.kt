@@ -1176,7 +1176,7 @@ class MediaActivity : SimpleActivity(), MediaOperationsListener {
     private fun setupElderlyMode() {
         config.saveCustomSorting(SHOW_ALL, SORT_BY_DATE_TAKEN or SORT_DESCENDING or SORT_USE_NUMERIC_VALUE)
         config.saveFolderGrouping(SHOW_ALL, GROUP_BY_NONE)
-        config.useRecycleBin = true
+        config.useRecycleBin = false
 
         binding.mediaMenu.beGone()
         binding.mediaHolder.beGone()
